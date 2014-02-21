@@ -76,7 +76,8 @@ int main(int argc, char **argv) {
 	
 	steps = strtol(argv[optind], NULL, 10);
 	INVALID_VALUE(steps);
-	printf("%zu steps\n", steps);
+	
+	printf("width: %zu\nheight: %zu\nsteps: %zu\noutput: %s\n", width, height, steps, output_name);
 	
 	field = malloc(height * sizeof(*field));
 	for(i = 0; i < height; ++i) {
