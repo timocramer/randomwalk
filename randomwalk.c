@@ -4,6 +4,11 @@
 #include <unistd.h>
 #include <time.h>
 
+enum method {
+	OVERFLOW,
+	SATURATION
+};
+
 static void normalize(unsigned int **field, size_t height, size_t width, size_t max) {
 	size_t i, j;
 	
@@ -47,6 +52,16 @@ static void export_ppm(const char *filename, unsigned int **field, size_t height
 	--(x);\
 } while(0)
 
+#define increment_sat(x, m) do {\
+	if((x) < (m))\
+		++(x);\
+} while(0)
+
+#define decrement_sat(x, m) do {\
+	if((x) > (m))\
+		--(x);\
+} while(0)
+
 int main(int argc, char **argv) {
 	int c;
 	size_t width = 1440, height = 900;
@@ -57,8 +72,9 @@ int main(int argc, char **argv) {
 	size_t x_pos, y_pos;
 	size_t i;
 	unsigned int maximum_value;
+	enum method calculation_method = OVERFLOW;
 	
-	while((c = getopt(argc, argv, "h:w:s:o:")) != -1) {
+	while((c = getopt(argc, argv, "h:w:s:o:a")) != -1) {
 		switch(c) {
 		case 'h':
 			height = strtoul(optarg, NULL, 10);
@@ -73,6 +89,9 @@ int main(int argc, char **argv) {
 			break;
 		case 'o':
 			output_name = optarg;
+			break;
+		case 'a':
+			calculation_method = SATURATION;
 			break;
 		}
 	}
@@ -107,16 +126,28 @@ int main(int argc, char **argv) {
 		
 		switch(rand() % 4) {
 		case 0: // right
-			increment_modulo(x_pos, width);
+			switch(calculation_method) {
+			case OVERFLOW: increment_overflow(x_pos, width); break;
+			case SATURATION: increment_sat(x_pos, width - 1); break;
+			}
 			break;
 		case 1: // left
-			decrement_modulo(x_pos, width);
+			switch(calculation_method) {
+			case OVERFLOW: decrement_overflow(x_pos, width); break;
+			case SATURATION: decrement_sat(x_pos, 0); break;
+			}
 			break;
 		case 2: // up
-			increment_modulo(y_pos, height);
+			switch(calculation_method) {
+			case OVERFLOW: increment_overflow(y_pos, height); break;
+			case SATURATION: increment_sat(y_pos, height - 1); break;
+			}
 			break;
 		case 3: // down
-			decrement_modulo(y_pos, height);
+			switch(calculation_method) {
+			case OVERFLOW: decrement_overflow(y_pos, height); break;
+			case SATURATION: decrement_sat(y_pos, 0); break;
+			}
 			break;
 		}
 	}
