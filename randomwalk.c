@@ -36,6 +36,17 @@ static void export_ppm(const char *filename, unsigned int **field, size_t height
 	}\
 } while(0)
 
+#define increment_overflow(x, m) do {\
+	++(x);\
+	(x) %= (m);\
+} while(0)
+
+#define decrement_overflow(x, m) do {\
+	if((x) <= 0)\
+		(x) = (m);\
+	--(x);\
+} while(0)
+
 int main(int argc, char **argv) {
 	int c;
 	size_t width = 1440, height = 900;
@@ -96,22 +107,17 @@ int main(int argc, char **argv) {
 		
 		switch(rand() % 4) {
 		case 0: // right
-			x_pos++;
-			x_pos %= width;
+			increment_modulo(x_pos, width);
 			break;
 		case 1: // left
-			if(x_pos <= 0)
-				x_pos = width;
-			x_pos--;
+			decrement_modulo(x_pos, width);
 			break;
 		case 2: // up
-			y_pos++;
-			y_pos %= height;
+			increment_modulo(y_pos, height);
 			break;
 		case 3: // down
-			if(y_pos <= 0)
-				y_pos = height;
-			y_pos--; break;
+			decrement_modulo(y_pos, height);
+			break;
 		}
 	}
 	
